@@ -1,0 +1,37 @@
+{
+  "name": "leadingfellows/multiserver_guzzle",
+  "description": "PSR-7 multi-server guzzle client",
+  "type": "library",
+  "license": "",
+  "authors": [
+    {
+      "name": "Mikael MEULLE",
+      "email": "mikael.meulle@leadingfellows.com",
+      "homepage": "https://github.com/mikaelmeulle"
+    }
+  ],
+  "require": {
+    "php": ">=7.0",
+    "guzzlehttp/psr7": "^1.6",
+    "guzzlehttp/guzzle": "^7.0"
+  },
+  "require-dev": {
+
+  },
+  "autoload": {
+    "psr-4": {
+      "leadingfellows\\multiserver_guzzle\\": "src/"
+    }
+  },
+  "keywords": [
+    "framework",
+    "http",
+    "rest",
+    "web service",
+    "curl",
+    "client",
+    "guzzle",
+    "HTTP client",
+    "PSR-7"
+  ]
+}
