@@ -177,7 +177,7 @@ class MultiServerClient
      *    results => result by server
      *    errors => error by server
      */
-    public function send($method, $path, $requestOptions = [], $concurrency = null, $serverKeys = null)
+    public function send($method, $path, $requestOptions = [], $concurrency = null, $serverKeys = null, $byserverOptions = [])
     {
         if (!$concurrency) {
             $concurrency = $this->defaultConcurrency;
@@ -186,7 +186,7 @@ class MultiServerClient
         $request_configuration2 = array_key_exists("configuration", $requestOptions)? $requestOptions["configuration"] : [];
         $client_config= array_replace_recursive($this->configuration, $request_configuration, $request_configuration2);
         //\Drupal::logger("guzzle config")->info("<pre>".print_r($client_config, TRUE)."</pre>");
-        $client = new Client(array_replace_recursive($request_configuration, $this->configuration));
+        $client = new Client($client_config);
         $servers = $this->getServers();
 
         if ($serverKeys !== null) {
@@ -198,9 +198,12 @@ class MultiServerClient
         }
 
 
-        $promises = (function () use ($client, $servers, $method, $path,  $requestOptions, $serverKeys) {
+        $promises = (function () use ($client, $servers, $method, $path,  $requestOptions, $serverKeys, $byserverOptions) {
             if (!$requestOptions || ! is_array($requestOptions)) {
                 $requestOptions = [];
+            }
+            if (!$byserverOptions || ! is_array($byserverOptions)) {
+                $byserverOptions = [];
             }
             $request_headers = array_key_exists("headers", $requestOptions)? $requestOptions["headers"] : [];
             $request_data = array_key_exists("body", $requestOptions)? $requestOptions["body"] : null;
@@ -219,8 +222,8 @@ class MultiServerClient
                 }
                 $url = $serverData["uri"].$path;
                 /**
- * @var \use Psr\Http\Message\UriInterface $uri 
-*/
+                 * @var \use Psr\Http\Message\UriInterface $uri
+                */
                 $uri = new Uri($url);
 
                 if ($request_query_string !== null) {
@@ -261,6 +264,9 @@ class MultiServerClient
                             var_dump($stats->getHandlerErrorData());
                         }*/
                     };
+                }
+                if(array_key_exists($serverKey, $byserverOptions)) {
+                    $serverSpecificConf = array_replace_recursive($serverSpecificConf, $byserverOptions[$serverKey]);
                 }
                 $request = new Request($method, $uri, $request_headers, $request_data, $request_version);
 
