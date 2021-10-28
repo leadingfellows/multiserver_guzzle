@@ -151,7 +151,7 @@ class MultiServerClient
         ) {
             $ret["result"] = $result["results"][$serverKey];
         }
-        if ($result["errors"] && is_array($result["errors"]) && count(is_array($result["errors"]))) {
+        if ($result["errors"] && is_array($result["errors"]) && (count($result["errors"]) > 0)) {
             $ret["error"]  = reset($result["errors"]);
         }
         return $ret;
