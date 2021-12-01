@@ -26,61 +26,77 @@ use GuzzleHttp\Psr7\Uri;
  */
 class MultiServerClient
 {
-    /**
-     * Servers
-     *
-     * @var array
-     */
+    /** @var array<string,mixed> $servers  */
     protected $servers;
 
 
-    /**
-     * configuration
-     *
-     * @var array
-     */
+    /** @var array<string,mixed> $configuration */
     protected $configuration;
 
-
+    /** @var int $defaultConcurrency */
     protected $defaultConcurrency;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->servers = [];
         $this->configuration = $this->getDefaultConfiguration();
         $this->defaultConcurrency = 4;
     }
-
+    /**
+     * Sets the default concurrency parameter
+     *
+     * @param integer $num
+     *
+     * @return self
+     */
     public function setConcurrency(int $num)
     {
         $this->defaultConcurrency = $num;
         return $this;
     }
-
+    /**
+     * Gets the default config
+     * see http://docs.guzzlephp.org/en/stable/request-options.html
+     * 
+     * @return array<string,mixed>
+     */
     public function getDefaultConfiguration()
     {
-        // http://docs.guzzlephp.org/en/stable/request-options.html
         return [
-        'http_errors'     => true, // handle explicitly below
-        'connect_timeout' => 10,
-        'timeout'         => 30,
-        'read_timeout'    => 30,
-        'debug' => false,
-        'allow_redirects' => true,
-        'headers' => [
-          'Accept-Encoding' => 'gzip',
-          'Accept'     => 'application/json',
-          'User-Agent' => 'MultiServerClient/1.0'
-        ]
+            'http_errors'     => true, // handle explicitly below
+            'connect_timeout' => 10,
+            'timeout'         => 30,
+            'read_timeout'    => 30,
+            'debug' => false,
+            'allow_redirects' => true,
+            'headers' => [
+                'Accept-Encoding' => 'gzip',
+                'Accept'     => 'application/json',
+                'User-Agent' => 'MultiServerClient/1.0'
+            ]
         ];
     }
-
+    /**
+     * Set global configuration parameters
+     *
+     * @param array<string,mixed> $conf
+     *
+     * @return self
+     */
     public function setConfiguration(array $conf)
     {
         $this->configuration = array_replace_recursive($this->configuration, $conf);
         return $this;
     }
 
+    /**
+     * Returns global configuration
+     *
+     * @return array<string,mixed>
+     */
     public function getConfiguration()
     {
         return $this->configuration;
@@ -88,24 +104,22 @@ class MultiServerClient
 
 
     /**
-     * @param string $key
-     * @param string $server_uri
-     * @param array  $options
+     * Adds a server (or replace a server config)
+     * 
+     * @param string               $key
+     * @param string               $server_uri
+     * @param array<string,mixed>  $options
      */
     public function addServer(string $key, string $server_uri, array $options = [])
     {
-        $this->servers[$key] = array_replace_recursive(
-            [
-            "uri" => $server_uri
-            ], $options
-        );
+        $this->servers[$key] = array_replace_recursive(["uri" => $server_uri], $options);
         return $this;
     }
 
     /**
      * get all servers
      *
-     * @return array
+     * @return array<string,mixed>
      */
     public function getServers()
     {
@@ -134,7 +148,7 @@ class MultiServerClient
      *
      * @param string $key
      *
-     * @return bool
+     * @return self|false
      */
     public function removeServer($key)
     {
@@ -144,7 +158,16 @@ class MultiServerClient
         unset($this->servers[$key]);
         return $this;
     }
-
+    /**
+     * send request to one server
+     *
+     * @param string              $serverKey
+     * @param string              $method
+     * @param string              $path
+     * @param array<string,mixed> $requestOptions
+     *
+     * @return array<string,mixed>
+     */
     public function sendToServer($serverKey, $method, $path, $requestOptions = [])
     {
         $result = $this->send($method, $path, $requestOptions, null, [$serverKey]);
@@ -159,10 +182,6 @@ class MultiServerClient
         }
         return $ret;
     }
-
-
-    
-
     /**
      * send same query to multiple servers at once
      * see also http://docs.guzzlephp.org/en/stable/psr7.html
