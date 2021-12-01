@@ -31,7 +31,7 @@ class MultiServerClientTest extends TestCase
     private static $process;
 
     /** @var string $address */
-    
+
 
     /**
      * launch php builtin web server
@@ -68,12 +68,15 @@ class MultiServerClientTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $msc = new MultiServerClient;
+        $msc = new MultiServerClient();
         $this->assertEquals($msc->getDefaultConfiguration(), $msc->getConfiguration());
     }
+    /**
+     * Tests getConfiguration and setConfiguration methods
+     */
     public function testConfiguration(): void
     {
-        $msc = new MultiServerClient;
+        $msc = new MultiServerClient();
         $this->assertFalse($msc->getConfiguration()['debug']);
         $this->assertEquals(30, $msc->getConfiguration()['timeout']);
         $msc->setConfiguration(['debug' => true]);
@@ -83,11 +86,13 @@ class MultiServerClientTest extends TestCase
         $this->assertTrue($msc->getConfiguration()['debug']);
         $this->assertEquals(60, $msc->getConfiguration()['timeout']);
         $msc->setConcurrency(3);
-
     }
-    public function testAddAndRemoveServer(): void 
+    /**
+     * tests addServer, removeServer, getServer and getServers methods
+     */
+    public function testAddAndRemoveServer(): void
     {
-        $msc = new MultiServerClient;
+        $msc = new MultiServerClient();
         $msc->addServer('test', 'http://foo.bar.net');
         $srv = $msc->getServer('test');
         $this->assertEquals(['uri' => 'http://foo.bar.net'], $srv);
@@ -100,7 +105,7 @@ class MultiServerClientTest extends TestCase
         } catch (\Exception $e) {
             $msg = $e->getMessage();
         }
-        $this->assertEquals("Server does not exists: test",$msg);
+        $this->assertEquals("Server does not exists: test", $msg);
         $this->assertFalse($msc->removeServer('test'));
     }
     /**
@@ -110,7 +115,7 @@ class MultiServerClientTest extends TestCase
      */
     public function dataSend(): array
     {
-        // options to test : 
+        // options to test :
         // "headers", "body", "query", "version", "return_body", "return_json", "return_response", "return_stats"
         $optsTxt  = [ 'return_json'     => false];
         $optsRsp  = [ 'return_response' => true];
@@ -136,18 +141,18 @@ class MultiServerClientTest extends TestCase
      * @param array<string,mixed>|null $json
      * @param string|null              $resp
      * @param bool                     $stats
-     * 
+     *
      * @return void
-     * 
+     *
      * @dataProvider dataSend
      */
     public function testSendToOne($path, $opts, $error, $body, $json, $resp, $stats): void
     {
-        $msc = new MultiServerClient;
+        $msc = new MultiServerClient();
         $msc->addServer('test', 'http://'.self::SRV_ADDRESS);
         $res1  = $msc->send('post', $path, $opts);
         $res2 = $msc->sendToServer('test', 'post', $path, $opts);
-        foreach([$res1, $res2] as $res) {
+        foreach ([$res1, $res2] as $res) {
             if (null !== $error) {
                 if (array_key_exists('errors', $res)) {
                     $errors = $res['errors'];
@@ -168,8 +173,8 @@ class MultiServerClientTest extends TestCase
                     $results = $res['result'];
                     $this->assertEmpty($res['error']);
                 }
-                $this->assertEquals($body,  $results['body']);
-                $this->assertEquals($json,  $results['json']);
+                $this->assertEquals($body, $results['body']);
+                $this->assertEquals($json, $results['json']);
                 $this->assertEquals($error, $results['error']);
                 /** @var Response|null $resp */
                 if (null !== $resp) {
@@ -185,14 +190,14 @@ class MultiServerClientTest extends TestCase
                     $this->assertNull($results['stats']);
                 }
             }
-        }        
+        }
     }
     /**
-     * 
+     *
      */
     public function testSendWithQuery(): void
     {
-        $msc    = new MultiServerClient;
+        $msc    = new MultiServerClient();
         $msc->addServer('test', 'http://'.self::SRV_ADDRESS);
         $query  = ['key1' => 'value1', 'key2' => 'value2'];
         $res    = $msc->send('post', '/test.php', [ 'query' => $query ]);
@@ -200,11 +205,11 @@ class MultiServerClientTest extends TestCase
         $this->assertEquals(['key1' => 'value1', 'key2' => 'value2'], $data);
     }
        /**
-     * 
+     *
      */
     public function testSendMultiple(): void
     {
-        $msc    = new MultiServerClient;
+        $msc    = new MultiServerClient();
         $headers1 = [ 'Accept'     => 'application/json', 'User-Agent' => 'TESTMSC01/1.0' ];
         $msc->addServer('test1', 'http://'.self::SRV_ADDRESS, [ 'configuration' => ['headers' => $headers1 ]]);
         $headers2 = [ 'Accept'     => 'application/json', 'User-Agent' => 'TESTMSC02/1.0' ];
@@ -214,7 +219,7 @@ class MultiServerClientTest extends TestCase
         $serverSpecificConf = ['test3' => ['headers' => $headers3]];
 
         $res    = $msc->send('post', '/test.php', [], 1, null, $serverSpecificConf);
-        $this->assertEquals(3,count($res['results']));
+        $this->assertEquals(3, count($res['results']));
         $ua1 = $res['results']['test1']['json']['server']['HTTP_USER_AGENT'];
         $this->assertEquals('TESTMSC01/1.0', $ua1);
         $ua2 = $res['results']['test2']['json']['server']['HTTP_USER_AGENT'];
@@ -223,15 +228,19 @@ class MultiServerClientTest extends TestCase
         $this->assertEquals('TESTMSC03/1.0', $ua3);
 
         $res    = $msc->send('post', '/test.php', [], 1, ['test1', 'test3'], $serverSpecificConf);
-        $this->assertEquals(2,count($res['results']));
+        $this->assertEquals(2, count($res['results']));
         $ua1 = $res['results']['test1']['json']['server']['HTTP_USER_AGENT'];
         $this->assertEquals('TESTMSC01/1.0', $ua1);
         $ua3 = $res['results']['test3']['json']['server']['HTTP_USER_AGENT'];
         $this->assertEquals('TESTMSC03/1.0', $ua3);
     }
+    /**
+     * Tests send method exceptions
+     *
+     */
     public function testSendExceptions(): void
     {
-        $msc    = new MultiServerClient;
+        $msc    = new MultiServerClient();
         $msc->addServer('test1', 'http://'.self::SRV_ADDRESS);
         $msc->addServer('testErr', 'http://127.0.0.1:9999');
         $msg = '';
@@ -244,7 +253,5 @@ class MultiServerClientTest extends TestCase
         $res = $msc->send('post', '/test.php', [], 1, ['testErr']);
         $err = reset($res['errors']);
         $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
-        
     }
-
 }

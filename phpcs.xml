@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="phpcs-standard">
+  <description>Codestyle ruleset for phpcs</description>
+
+  <!-- Specify standards. -->
+  <rule ref="PSR2" >
+     <exclude name="Generic.Files.LineLength.TooLong" />
+  </rule>
+  <rule ref="Symfony">
+     <exclude name="Symfony.Functions.Arguments.Invalid" />
+  </rule>
+  <config name="installed_paths" value="vendor/escapestudios/symfony2-coding-standard"/>
+  <!-- Set ignore extensions. -->
+  <!-- @todo remove .css to check also the css files. -->
+  <!-- @see https://www.drupal.org/node/2867601#comment-12075633 -->
+  <arg name="ignore" value="*.css,*.md,*.txt"/>
+
+  <!-- Specify folders. -->
+  <file>src</file>
+  <file>tests/phpunit/src</file>
+</ruleset>
