@@ -16,11 +16,19 @@
     "guzzlehttp/guzzle": "^7.0 || ^6.0"
   },
   "require-dev": {
-
+      "phpstan/phpstan" : "^1.2",
+      "mikey179/vfsstream": "^1.6",
+      "symfony/process" : "^5.4",
+      "phpunit/phpunit": "^9.5"
   },
   "autoload": {
     "psr-4": {
       "leadingfellows\\multiserver_guzzle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "leadingfellows\\MultiGuzzleTests\\": "tests/phpunit/src"
     }
   },
   "keywords": [

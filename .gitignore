@@ -1,3 +1,7 @@
 .idea
 composer.lock
-vendor
+vendor/
+tmp/
+*.code-workspace
+tests/phpunit/testsData/*
+tests/results/
