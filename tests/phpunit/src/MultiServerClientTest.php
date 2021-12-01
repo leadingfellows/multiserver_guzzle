@@ -129,7 +129,14 @@ class MultiServerClientTest extends TestCase
     }
     /**
      * Test send to one basic functionalities
-     *
+     * @param string                   $path
+     * @param array<string,mixed>      $opts
+     * @param string|null              $error
+     * @param string|null              $body
+     * @param array<string,mixed>|null $json
+     * @param string|null              $resp
+     * @param bool                     $stats
+     * 
      * @return void
      * 
      * @dataProvider dataSend

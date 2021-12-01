@@ -108,6 +108,8 @@ class MultiServerClient
      * @param string               $key
      * @param string               $server_uri
      * @param array<string,mixed>  $options
+     * 
+     * @return self
      */
     public function addServer(string $key, string $server_uri, array $options = [])
     {
@@ -130,7 +132,7 @@ class MultiServerClient
      *
      * @param string $key
      *
-     * @return mixed
+     * @return array<string,mixed>
      *
      * @throws \Exception
      */
@@ -185,9 +187,9 @@ class MultiServerClient
      * send same query to multiple servers at once
      * see also http://docs.guzzlephp.org/en/stable/psr7.html
      * 
-     * @param string              $method         HTTP method
-     * @param string              $path           path to construct the URI
-     * @param array<string,mixed> $requestOptions associative array of request options
+     * @param string              $method          HTTP method
+     * @param string              $path            Path to construct the URI
+     * @param array<string,mixed> $requestOptions  Associative array of request options
      *                                - 'headers' (array)  : Request headers 
      *                                  See https://github.com/guzzle/psr7/blob/master/src/Request.php
      *                                - 'body' (mixed)     :    Request body
@@ -201,8 +203,9 @@ class MultiServerClient
      *                                - 'return_json' (bool)     : include decode_json array in results
      *                                - 'return_response' (bool) : include GuzzleHttp\Psr7\Response object in results
      *                                - 'return_stats' (bool)    : include GuzzleHttp\TransferStats object in results
-     * @param int|null            $concurrency    how many concurrency to use
-     * @param array<string>|null  $serverKeys     List of server to use
+     * @param int|null            $concurrency     How many concurrency to use
+     * @param array<string>|null  $serverKeys      List of server to use
+     * @param array<string,mixed> $byserverOptions associative array of server specific options
      *
      * @return array<string,mixed>   results => result by server
      *                               errors => error by server
