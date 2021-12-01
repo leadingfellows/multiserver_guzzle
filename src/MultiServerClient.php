@@ -301,7 +301,7 @@ class MultiServerClient
                             $result = null;
                             $error = null;
                             try {
-                                $result = ($return_json) ? json_decode($body, true, 512, JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) : null;
+                                $result = ($return_json) ? json_decode("$body", true, 512, JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_SUBSTITUTE) : null;
                             } catch (\Exception $e) {
                                 $error = $e;
                             }
