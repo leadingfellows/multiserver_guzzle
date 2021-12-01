@@ -308,6 +308,9 @@ class MultiServerClient
 
                             // save to cache expiry to 300s
                             //$cache->put('cache_user_' . $user, $profile, $expiry = 300);
+                            if (! array_key_exists('stats', $server_result)) {
+                                $server_result["stats"] = null;
+                            }
                             $server_result["response"] = ($return_response)? $response : null;
                             $server_result["json"] = $return_json? $result : null;
                             $server_result["body"] = $return_body? $body : null;
