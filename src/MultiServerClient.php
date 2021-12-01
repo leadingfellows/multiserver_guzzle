@@ -29,7 +29,6 @@ class MultiServerClient
     /** @var array<string,mixed> $servers  */
     protected $servers;
 
-
     /** @var array<string,mixed> $configuration */
     protected $configuration;
 
@@ -177,7 +176,7 @@ class MultiServerClient
         ) {
             $ret["result"] = $result["results"][$serverKey];
         }
-        if ($result["errors"] && is_array($result["errors"]) && (count($result["errors"]) > 0)) {
+        if ($result["errors"] && is_array($result["errors"])) {
             $ret["error"]  = reset($result["errors"]);
         }
         return $ret;
@@ -328,34 +327,29 @@ class MultiServerClient
         $results = [];
         $errors = [];
 
-        if (0) {
-            $results = \GuzzleHttp\Promise\settle($promises)->wait();
-        }
-        if (1) {
-            $eachPromise = new EachPromise(
-                $promises, [
-                // how many concurrency we are use
-                'concurrency' => $concurrency,
-                'fulfilled' => function ($returned_value) use (&$results, &$errors) {
-                    // process object profile of user here
-                    $serverKey = $returned_value["server"];
-                    if ($returned_value["error"] !== null) {
-                        $errors[$serverKey] = $returned_value["error"];
-                    } else {
-                        $results[$serverKey] = $returned_value;
-                    }
+        $eachPromise = new EachPromise(
+            $promises, [
+            // how many concurrency we are use
+            'concurrency' => $concurrency,
+            'fulfilled' => function ($returned_value) use (&$results, &$errors) {
+                // process object profile of user here
+                $serverKey = $returned_value["server"];
+                if ($returned_value["error"] !== null) {
+                    $errors[$serverKey] = $returned_value["error"];
+                } else {
+                    $results[$serverKey] = $returned_value;
                 }
-                ,
-                'rejected' => function ($reason) use (&$errors) {
-                    // echo "REJECTED:"."\n";
-                    // handle promise rejected here
-                    $errors[] = $reason;
-                }
+            }
+            ,
+            'rejected' => function ($reason) use (&$errors) {
+                // echo "REJECTED:"."\n";
+                // handle promise rejected here
+                $errors[] = $reason;
+            }
 
-                ]
-            );
-            $test = $eachPromise->promise()->wait();
-        }
+            ]
+        );
+        $test = $eachPromise->promise()->wait();
         return ["results" => $results, "errors" => $errors];
     }
 }

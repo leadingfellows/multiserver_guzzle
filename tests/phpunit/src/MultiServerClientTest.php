@@ -9,8 +9,6 @@ namespace leadingfellows\multiserver_guzzle_tests;
 
 use leadingfellows\multiserver_guzzle\MultiServerClient;
 use PHPUnit\Framework\TestCase;
-use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamDirectory;
 use Symfony\Component\Process\Process;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\TransferStats;
@@ -28,8 +26,6 @@ class MultiServerClientTest extends TestCase
     const TEST_TEXT    = 'this is a test';
     const TEST_JSON    = '{"name": "test"}';
 
-    /** @var vfsStreamDirectory */
-    private $root;
 
     /** @var Process $process */
     private static $process;
@@ -45,7 +41,10 @@ class MultiServerClientTest extends TestCase
         self::$process = new Process(['php', '-S', self::SRV_ADDRESS, '-t', getcwd().self::TESTS_DATA]);
         self::$process->start();
         $testPage = '<?php print json_encode( ["request" => $_REQUEST, "server" => $_SERVER ]);';
-        file_put_contents(getcwd().self::TESTS_DATA."/test.php", $testPage);
+        $testPath   = getcwd().self::TESTS_DATA;
+        file_put_contents("$testPath/test.php", $testPage);
+        file_put_contents("$testPath/test.txt", self::TEST_TEXT);
+        file_put_contents("$testPath/test.json", self::TEST_JSON);
 
         usleep(100000); //wait for server to get going
     }
@@ -56,6 +55,10 @@ class MultiServerClientTest extends TestCase
     public static function tearDownAfterClass(): void
     {
         self::$process->stop();
+        $testPath   = getcwd().self::TESTS_DATA;
+        unlink("$testPath/test.php");
+        unlink("$testPath/test.txt");
+        unlink("$testPath/test.json");
     }
     /** setup a VfsStream filesystem with /conf/satis_dgfip.yaml
      *
@@ -63,10 +66,6 @@ class MultiServerClientTest extends TestCase
      *
      * @see \PHPUnit\Framework\TestCase::setUp()
      */
-    protected function setUp(): void
-    {
-        $this->root = vfsStream::setup();
-    }
     public function testConstructor(): void
     {
         $msc = new MultiServerClient;
@@ -116,9 +115,6 @@ class MultiServerClientTest extends TestCase
         $optsTxt  = [ 'return_json'     => false];
         $optsRsp  = [ 'return_response' => true];
         $optsStat = [ 'return_stats'    => true];
-        $testPath   = getcwd().self::TESTS_DATA;
-        file_put_contents("$testPath/test.txt", self::TEST_TEXT);
-        file_put_contents("$testPath/test.json", self::TEST_JSON);
         $json = json_decode(self::TEST_JSON, true);
 
         $data = [];
@@ -168,7 +164,7 @@ class MultiServerClientTest extends TestCase
                 $this->assertEquals($body,  $results['body']);
                 $this->assertEquals($json,  $results['json']);
                 $this->assertEquals($error, $results['error']);
-                /** @var Response $resp */
+                /** @var Response|null $resp */
                 if (null !== $resp) {
                     $respString = $results['response']->getStatusCode().":".$results['response']->getReasonPhrase();
                     $this->assertEquals($resp, $respString);
@@ -176,7 +172,7 @@ class MultiServerClientTest extends TestCase
                     $this->assertnull($results['response']);
                 }
                 $this->assertEquals('test', $results['server']);
-                if ($stats === true) {
+                if ($stats) {
                     $this->assertInstanceOf('GuzzleHttp\TransferStats', $results['stats']);
                 } else {
                     $this->assertFalse(array_key_exists('stats', $results));
