@@ -4,15 +4,6 @@
  */
 namespace leadingfellows\multiserver_guzzle;
 
-/**
- * Implementation of class MultiServerClient.
- *
- * PHP version 7
- *
- * Contains declaration and implementation of class MultiServerClient
- * which is a PSR-7 multi-server guzzle client.
- */
-
 use GuzzleHttp\Client;
 use GuzzleHttp\TransferStats;
 use GuzzleHttp\Promise\EachPromise;
@@ -26,8 +17,14 @@ use GuzzleHttp\RequestOptions;
 /**
  * Class MultiServerClient
  *
+ * Implementation of class MultiServerClient.
+ *
+ * PHP version 7
+ *
+ * Contains declaration and implementation of class MultiServerClient
+ * which is a PSR-7 multi-server guzzle client.
  */
-class MultiServerClient
+class MultiServerClient implements MultiServerClientInterface
 {
     /** @var array<string,mixed> $servers  */
     protected $servers;
