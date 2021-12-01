@@ -115,8 +115,10 @@ class MultiServerClient
     /**
      * get a server from the pool
      *
-     * @param  $key
+     * @param string $key
+     *
      * @return mixed
+     *
      * @throws \Exception
      */
     public function getServer($key)
@@ -130,7 +132,8 @@ class MultiServerClient
     /**
      * Removes a server from the pool
      *
-     * @param  $key
+     * @param string $key
+     *
      * @return bool
      */
     public function removeServer($key)
@@ -158,22 +161,33 @@ class MultiServerClient
     }
 
 
-    // http://docs.guzzlephp.org/en/stable/psr7.html
+    
 
     /**
-     * @param  $method         HTTP method
-     * @param  $path           path to construct the URI
-     * @param  array      $requestOptions (https://github.com/guzzle/psr7/blob/master/src/Request.php)
-     *                                    array                                $headers Request
-     *                                    headers string|null|resource|StreamInterface $body   
-     *                                    Request body string                               $version
-     *                                    Protocol version array                               
-     *                                    $config  Config for Client
-     * @param  int|null   $concurrency
-     * @param  array|null $serverKeys
-     * @return array
-     *    results => result by server
-     *    errors => error by server
+     * send same query to multiple servers at once
+     * see also http://docs.guzzlephp.org/en/stable/psr7.html
+     * 
+     * @param string              $method         HTTP method
+     * @param string              $path           path to construct the URI
+     * @param array<string,mixed> $requestOptions associative array of request options
+     *                                - 'headers' (array)  : Request headers 
+     *                                  See https://github.com/guzzle/psr7/blob/master/src/Request.php
+     *                                - 'body' (mixed)     :    Request body
+     *                                   See https://github.com/guzzle/psr7/blob/master/src/Request.php
+     *                                - 'version' (string) :   Protocol version 
+     *                                  See https://github.com/guzzle/psr7/blob/master/src/Request.php
+     *                                - 'query' (array)   :    associative array of request variables
+     *                                   see https://stackoverflow.com/questions/42538403/guzzle-request-query-params
+     *
+     *                                - 'return_body' (bool)     : include body in results
+     *                                - 'return_json' (bool)     : include decode_json array in results
+     *                                - 'return_response' (bool) : include GuzzleHttp\Psr7\Response object in results
+     *                                - 'return_stats' (bool)    : include GuzzleHttp\TransferStats object in results
+     * @param int|null            $concurrency    how many concurrency to use
+     * @param array<string>|null  $serverKeys     List of server to use
+     *
+     * @return array<string,mixed>   results => result by server
+     *                               errors => error by server
      */
     public function send($method, $path, $requestOptions = [], $concurrency = null, $serverKeys = null, $byserverOptions = [])
     {
@@ -219,21 +233,12 @@ class MultiServerClient
                     continue;
                 }
                 $url = $serverData["uri"].$path;
-                /**
-                 * @var \use Psr\Http\Message\UriInterface $uri
-                */
                 $uri = new Uri($url);
 
                 if ($request_query_string !== null) {
                     // https://stackoverflow.com/questions/42538403/guzzle-request-query-params
                     $uri = $uri->withQuery($request_query_string);
                 }
-
-                /*if (false) {
-                  $result = "toto";
-                  yield new FulfilledPromise($result);
-                  continue;
-                }*/
 
                 if ($request_data && is_array($request_data)) {
                     $request_data = json_encode($request_data, JSON_INVALID_UTF8_IGNORE);
