@@ -77,7 +77,7 @@ class MultiServerClient
 
     public function setConfiguration(array $conf)
     {
-        $this->configuration = array_replace_recursive($conf, $this->configuration);
+        $this->configuration = array_replace_recursive($this->configuration, $conf);
         return $this;
     }
 
@@ -267,7 +267,6 @@ class MultiServerClient
                     $serverSpecificConf = array_replace_recursive($serverSpecificConf, $byserverOptions[$serverKey]);
                 }
                 $request = new Request($method, $uri, $request_headers, $request_data, $request_version);
-
                 // don't forget using generator
                 yield $client->sendAsync($request, $serverSpecificConf)
                     ->then(
