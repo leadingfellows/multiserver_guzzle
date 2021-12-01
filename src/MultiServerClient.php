@@ -270,7 +270,7 @@ class MultiServerClient
                 // don't forget using generator
                 yield $client->sendAsync($request, $serverSpecificConf)
                     ->then(
-                        function (Response $response) use ($serverKey, $serverData,  &$server_result, $return_body, $return_json, $return_response) {
+                        function (Response $response) use ($serverKey, &$server_result, $return_body, $return_json, $return_response) {
                             $body = ($return_body || $return_json)? $response->getBody()->getContents() : null;
                             $result = null;
                             $error = null;
@@ -322,7 +322,7 @@ class MultiServerClient
                     }
                 }
                 ,
-                'rejected' => function ($reason) use (&$results, &$errors) {
+                'rejected' => function ($reason) use (&$errors) {
                     // echo "REJECTED:"."\n";
                     // handle promise rejected here
                     $errors[] = $reason;
