@@ -184,7 +184,7 @@ class MultiServerClient implements MultiServerClientInterface
             $ret["result"] = $result["results"][$serverKey];
         }
         if ($result["errors"] && is_array($result["errors"])) {
-            $ret["error"]  = $result["errors"][$serverKey]; 
+            $ret["error"]  = $result["errors"][$serverKey];
         }
 
         return $ret;
