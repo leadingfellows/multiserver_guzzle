@@ -303,7 +303,6 @@ class MultiServerClientTest extends TestCase
         $res = $msc->send('post', '/test.php', [], 1, ['testErr']);
         $err = $res['errors']['testErr'];
         $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
-
         /* test one error (connection refused) and one result */
         $res = $msc->send('post', '/test.php');
         // => server testErr has an error
@@ -311,5 +310,21 @@ class MultiServerClientTest extends TestCase
         $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
         // => and test1 has a result
         $this->assertArrayHasKey('json', $res['results']['test1']);
+    }
+    /**
+     * For printing errors while debugging tests
+     *
+     * @param array<string,mixed> $res
+     *
+     */
+    protected function showErrors($res): void
+    {
+        if (array_key_exists('errors', $res)) {
+            foreach (array_keys($res['errors']) as $server) {
+                /** @var \Exception $err */
+                $err = $res['errors'][$server];
+                print "ERROR : ".$err->getMessage()."\n".$err->getTraceAsString();
+            }
+        }
     }
 }
