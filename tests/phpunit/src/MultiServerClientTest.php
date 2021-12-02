@@ -243,6 +243,8 @@ class MultiServerClientTest extends TestCase
         $msc    = new MultiServerClient();
         $msc->addServer('test1', 'http://'.self::SRV_ADDRESS);
         $msc->addServer('testErr', 'http://127.0.0.1:9999');
+
+        /* test on non existing server throws Exception */
         $msg = '';
         try {
             $msc->send('post', '/test.php', [], 1, ['test2']);
@@ -250,8 +252,20 @@ class MultiServerClientTest extends TestCase
             $msg = $e->getMessage();
         }
         $this->assertEquals('server unavailable: test2', $msg);
+
+        /* test on error (connection refused) when only one server */
         $res = $msc->send('post', '/test.php', [], 1, ['testErr']);
-        $err = reset($res['errors']);
+        $err = $res['errors']['testErr'];
         $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
+
+        /* test one error (connection refused) and one result */
+        $res = $msc->send('post', '/test.php');
+        // => server testErr has an error
+        $err = $res['errors']['testErr'];
+        $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
+        // => and test1 has a result
+        $this->assertArrayHasKey('json', $res['results']['test1']);
+
+
     }
 }
