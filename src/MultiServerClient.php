@@ -184,7 +184,7 @@ class MultiServerClient implements MultiServerClientInterface
             $ret["result"] = $result["results"][$serverKey];
         }
         if ($result["errors"] && is_array($result["errors"])) {
-            $ret["error"]  = reset($result["errors"]);
+            $ret["error"]  = $result["errors"][$serverKey]; 
         }
 
         return $ret;
@@ -240,8 +240,9 @@ class MultiServerClient implements MultiServerClientInterface
                     throw new \Exception(sprintf("server unavailable: %s", $serverKey));
                 }
             }
+        } else {
+            $serverKeys = array_keys($servers);
         }
-
         $promises = (function () use (
             $client,
             $servers,
@@ -290,10 +291,8 @@ class MultiServerClient implements MultiServerClientInterface
                 $returnStats = $requestOptions["return_stats"];
             }
 
-            foreach ($servers as $serverKey => $serverData) {
-                if (null !== $serverKeys and !in_array($serverKey, $serverKeys)) {
-                    continue;
-                }
+            foreach ($serverKeys as $serverKey) {
+                $serverData = $servers[$serverKey];
                 $url = $serverData["uri"].$path;
                 $uri = new Uri($url)    ;
 
@@ -353,20 +352,12 @@ class MultiServerClient implements MultiServerClientInterface
 
                             return $serverResult;
                         }
-                        /*, function (\Exception $e) use ($serverKey, $serverData) {
-                        return [
-                        "server" => $serverKey,
-                        "error" => $e,
-                        ];
-
-                        }*/
                     );
             }
         })();
 
         $results = [];
         $errors = [];
-
         $eachPromise = new EachPromise(
             $promises,
             [
@@ -382,10 +373,9 @@ class MultiServerClient implements MultiServerClientInterface
                 }
             }
             ,
-            'rejected' => function ($reason) use (&$errors) {
-                // echo "REJECTED:"."\n";
-                // handle promise rejected here
-                $errors[] = $reason;
+            'rejected' => function ($reason, $index) use (&$errors, $serverKeys) {
+                $server = $serverKeys[$index];
+                $errors[$server] = $reason;
             },
 
             ]
