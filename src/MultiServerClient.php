@@ -184,7 +184,7 @@ class MultiServerClient implements MultiServerClientInterface
             $ret["result"] = $result["results"][$serverKey];
         }
         if ($result["errors"] && is_array($result["errors"])) {
-            $ret["error"]  = $result["errors"][$serverKey]; 
+            $ret["error"]  = $result["errors"][$serverKey];
         }
 
         return $ret;
@@ -276,7 +276,9 @@ class MultiServerClient implements MultiServerClientInterface
                 $requestVersion = $requestOptions["version"];
             }
             if (array_key_exists("query", $requestOptions)) {
-                $requestQueryString = Query::build($requestOptions["query"]);
+                // Deprecated - will be removed in guzzlehttp/psr7:2.0. Use Query::build instead.
+                //$requestQueryString = Query::build($requestOptions["query"]);
+                $requestQueryString = \GuzzleHttp\Psr7\build_query($requestOptions["query"]);
             }
             if (array_key_exists("return_body", $requestOptions)) {
                 $returnBody = $requestOptions["return_body"];

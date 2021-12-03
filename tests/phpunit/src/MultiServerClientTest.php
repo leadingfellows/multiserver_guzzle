@@ -40,7 +40,8 @@ class MultiServerClientTest extends TestCase
     {
         self::$process = new Process(['php', '-S', self::SRV_ADDRESS, '-t', getcwd().self::TESTS_DATA]);
         self::$process->start();
-        $testPage = '<?php print json_encode( ["request" => $_REQUEST, "server" => $_SERVER ]);';
+        $testPage = '<?php 
+        print json_encode( ["request"=>$_REQUEST, "server"=>$_SERVER, "data"=>file_get_contents("php://input")]);';
         $testPath   = getcwd().self::TESTS_DATA;
         file_put_contents("$testPath/test.php", $testPage);
         file_put_contents("$testPath/test.txt", self::TEST_TEXT);
@@ -56,7 +57,7 @@ class MultiServerClientTest extends TestCase
     {
         self::$process->stop();
         $testPath   = getcwd().self::TESTS_DATA;
-        unlink("$testPath/test.php");
+        //unlink("$testPath/test.php");
         unlink("$testPath/test.txt");
         unlink("$testPath/test.json");
     }
@@ -120,12 +121,14 @@ class MultiServerClientTest extends TestCase
         $optsTxt  = [ 'return_json'     => false];
         $optsRsp  = [ 'return_response' => true];
         $optsStat = [ 'return_stats'    => true];
+        $optsJson = [ 'return_body'     => false];
+
         $json = json_decode(self::TEST_JSON, true);
 
         $data = [];
         //    test name                                   error             body          json   response   stats
         $data['plainText'] = ['/test.txt' , $optsTxt  , null            , self::TEST_TEXT, null   , null    , false ];
-        $data['json']      = ['/test.json', []        , null            , self::TEST_JSON, $json  , null    , false ];
+        $data['json']      = ['/test.json', $optsJson , null            , null           , $json  , null    , false ];
         $data['get-resp']  = ['/test.json', $optsRsp  , null            , self::TEST_JSON, $json  , '200:OK', false ];
         $data['json-err']  = ['/test.txt' , $optsRsp  , 'Syntax error'  , null           , null   , null    , false ];
         $data['get-stats'] = ['/test.json', $optsStat , null            , self::TEST_JSON, $json  , null    , true  ];
@@ -204,21 +207,64 @@ class MultiServerClientTest extends TestCase
         $data = $res['results']['test']['json']['request'];
         $this->assertEquals(['key1' => 'value1', 'key2' => 'value2'], $data);
     }
-       /**
+    /**
      *
+     */
+    public function testSendWithBody(): void
+    {
+        $msc    = new MultiServerClient();
+        $msc->addServer('test', 'http://'.self::SRV_ADDRESS);
+
+        // test with array value (should be covnerted to json string)
+        $bodyData  = ['key1' => 'value1', 'key2' => 'value2'];
+        $res       = $msc->send('post', '/test.php', [ 'body' => $bodyData ]);
+        $this->assertNotEmpty($res['results']);
+        $data = $res['results']['test']['json']['data'];
+        $this->assertEquals(['key1' => 'value1', 'key2' => 'value2'], (array) json_decode($data));
+
+        // test with string value
+        $res       = $msc->send('post', '/test.php', [ 'body' => 'test_string' ]);
+        $data = $res['results']['test']['json']['data'];
+        $this->assertEquals('test_string', $data);
+    }
+    /**
+     * tests requestOption['version']
+     *
+     * @return void
+     */
+    public function testVersion(): void
+    {
+        $msc    = new MultiServerClient();
+        $msc->addServer('test', 'http://'.self::SRV_ADDRESS);
+        $res       = $msc->send('post', '/test.php', [ 'version' => '1.0' ]);
+        $version = $res['results']['test']['json']['server']['SERVER_PROTOCOL'];
+        $this->assertEquals('HTTP/1.0', $version);
+        $res       = $msc->send('post', '/test.php');
+        $version = $res['results']['test']['json']['server']['SERVER_PROTOCOL'];
+        $this->assertEquals('HTTP/1.1', $version);
+    }
+    /**
+     *   test send multiple and various ways to specify headers :
+     *   - by server configuration
+     *   - by serverSpecificConf parameter
+     *   - by requestOptions parameter
      */
     public function testSendMultiple(): void
     {
-        $msc    = new MultiServerClient();
         $headers1 = [ 'Accept'     => 'application/json', 'User-Agent' => 'TESTMSC01/1.0' ];
-        $msc->addServer('test1', 'http://'.self::SRV_ADDRESS, [ 'configuration' => ['headers' => $headers1 ]]);
         $headers2 = [ 'Accept'     => 'application/json', 'User-Agent' => 'TESTMSC02/1.0' ];
-        $msc->addServer('test2', 'http://'.self::SRV_ADDRESS, [ 'configuration' => ['headers' => $headers2 ]]);
         $headers3 = [ 'Accept'     => 'application/json', 'User-Agent' => 'TESTMSC03/1.0' ];
+
+
+
+        $msc    = new MultiServerClient();
+        $msc->addServer('test1', 'http://'.self::SRV_ADDRESS, [ 'configuration' => ['headers' => $headers1 ]]);
+        $msc->addServer('test2', 'http://'.self::SRV_ADDRESS);
         $msc->addServer('test3', 'http://'.self::SRV_ADDRESS);
         $serverSpecificConf = ['test3' => ['headers' => $headers3]];
 
-        $res    = $msc->send('post', '/test.php', [], 1, null, $serverSpecificConf);
+        /* Default header is headers2 - but can be overwriten by server conf or by serverSpecificConf */
+        $res    = $msc->send('get', '/test.php', ['headers' => $headers2], 1, null, $serverSpecificConf);
         $this->assertEquals(3, count($res['results']));
         $ua1 = $res['results']['test1']['json']['server']['HTTP_USER_AGENT'];
         $this->assertEquals('TESTMSC01/1.0', $ua1);
@@ -257,7 +303,6 @@ class MultiServerClientTest extends TestCase
         $res = $msc->send('post', '/test.php', [], 1, ['testErr']);
         $err = $res['errors']['testErr'];
         $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
-
         /* test one error (connection refused) and one result */
         $res = $msc->send('post', '/test.php');
         // => server testErr has an error
@@ -265,7 +310,21 @@ class MultiServerClientTest extends TestCase
         $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
         // => and test1 has a result
         $this->assertArrayHasKey('json', $res['results']['test1']);
-
-
+    }
+    /**
+     * For printing errors while debugging tests
+     *
+     * @param array<string,mixed> $res
+     *
+     */
+    protected function showErrors($res): void
+    {
+        if (array_key_exists('errors', $res)) {
+            foreach (array_keys($res['errors']) as $server) {
+                /** @var \Exception $err */
+                $err = $res['errors'][$server];
+                print "ERROR : ".$err->getMessage()."\n".$err->getTraceAsString();
+            }
+        }
     }
 }
