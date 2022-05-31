@@ -30,9 +30,6 @@ class MultiServerClientTest extends TestCase
     /** @var Process $process */
     private static $process;
 
-    /** @var string $address */
-
-
     /**
      * launch php builtin web server
      */
