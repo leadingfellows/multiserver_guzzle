@@ -11,13 +11,15 @@ use leadingfellows\multiserver_guzzle\MultiServerClient;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\TransferStats;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 use function PHPUnit\Framework\assertMatchesRegularExpression;
 
 /**
- * @covers \leadingfellows\multiserver_guzzle\MultiServerClient
+ * Tests for MultiServerClient.
  */
+#[CoversClass("\leadingfellows\multiserver_guzzle\MultiServerClient")]
 class MultiServerClientTest extends TestCase
 {
     const SRV_ADDRESS  = '127.0.0.1:1349';
@@ -111,7 +113,7 @@ class MultiServerClientTest extends TestCase
      *
      * @return array<string,array<mixed>>
      */
-    public function dataSend(): array
+    public static function dataSend(): array
     {
         // options to test :
         // "headers", "body", "query", "version", "return_body", "return_json", "return_response", "return_stats"
@@ -144,8 +146,8 @@ class MultiServerClientTest extends TestCase
      *
      * @return void
      *
-     * @dataProvider dataSend
      */
+    #[DataProvider("dataSend")]
     public function testSendToOne($path, $opts, $error, $body, $json, $resp, $stats): void
     {
         $msc = new MultiServerClient();

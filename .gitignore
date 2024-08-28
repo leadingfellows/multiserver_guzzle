@@ -5,3 +5,4 @@ tmp/
 *.code-workspace
 tests/phpunit/testsData/*
 tests/results/
+.phpunit*.cache
