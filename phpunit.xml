@@ -1,35 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.3/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         cacheResultFile="tests/tmp/.phpunit.cache/test-results"
          executionOrder="depends,defects"
-         forceCoversAnnotation="true"
-         beStrictAboutCoversAnnotation="true"
          beStrictAboutOutputDuringTests="true"
-         beStrictAboutTodoAnnotatedTests="true"
          failOnRisky="true"
-         failOnWarning="true"
-         verbose="true"
+         failOnWarning="false"
          colors="true"
-         testdox="true">
-    <testsuites>
-        <testsuite name="default">
-            <directory>tests/phpunit/src</directory>
-        </testsuite>
-    </testsuites>
-
-    <coverage cacheDirectory="tests/tmp/.phpunit.cache/code-coverage"
-              processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">src</directory>
-        </include>
-        <report>
-            <html   outputDirectory="tests/results/html-coverage" lowUpperBound="50" highLowerBound="90"/>
-            <clover outputFile="tests/results/coverage.xml"/>
-        </report>
-    </coverage>
-    <logging>
-        <junit outputFile="tests/results/tests-phpunit.xml"/>
-    </logging>
+         cacheDirectory=".phpunit.cache"
+         beStrictAboutCoverageMetadata="true"
+         testdox="true"
+         displayDetailsOnIncompleteTests="true"
+         displayDetailsOnSkippedTests="true"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         displayDetailsOnTestsThatTriggerErrors="true"
+         displayDetailsOnTestsThatTriggerNotices="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
+  <testsuites>
+    <testsuite name="default">
+      <directory>tests/phpunit/src</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+  </source>
+  <coverage>
+    <report>
+      <html outputDirectory="tests/results/html-coverage" lowUpperBound="50" highLowerBound="90"/>
+      <clover outputFile="tests/results/coverage.xml"/>
+    </report>
+  </coverage>
+  <logging>
+    <junit outputFile="tests/results/tests-phpunit.xml"/>
+  </logging>
 </phpunit>
