@@ -299,12 +299,12 @@ class MultiServerClientTest extends TestCase
         /* test on error (connection refused) when only one server */
         $res = $msc->send('post', '/test.php', [], 1, ['testErr']);
         $err = $res['errors']['testErr'];
-        $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
+        $this->assertMatchesRegularExpression('/Connection refused|Couldn\'t connect to server/', $err->getMessage());
         /* test one error (connection refused) and one result */
         $res = $msc->send('post', '/test.php');
         // => server testErr has an error
         $err = $res['errors']['testErr'];
-        $this->assertMatchesRegularExpression('/Connection refused/', $err->getMessage());
+        $this->assertMatchesRegularExpression('/Connection refused|Couldn\'t connect to server/', $err->getMessage());
         // => and test1 has a result
         $this->assertArrayHasKey('json', $res['results']['test1']);
     }
